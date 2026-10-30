@@ -23,7 +23,7 @@ Existing alert bots mostly cover the COEX and Namyangju Dolby Cinemas, so this p
 4. In your repo, go to **Settings → Secrets and variables → Actions** and add two repository secrets:
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
-5. Go to **Actions** → *Megabox 예매 오픈 확인* → **Run workflow**
+5. Go to **Actions** → *Check Megabox showtimes* → **Run workflow**
    - Check `test_message` → sends a Telegram connection test
    - Leave it unchecked → runs one real check
 6. Edit `config.json` for the movies and branches you want

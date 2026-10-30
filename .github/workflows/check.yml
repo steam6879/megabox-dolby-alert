@@ -1,14 +1,14 @@
-name: Megabox 예매 오픈 확인
+name: Check Megabox showtimes
 
 on:
   schedule:
-    # 매일 11:50, 17:50 (KST) = 02:50, 08:50 (UTC) 시작 → 12시·18시 전후 알림 목표
-    # GitHub Actions의 schedule은 몇 분~수십 분 늦게 실행될 수 있음
+    # Daily at 11:50 and 17:50 KST (02:50 and 08:50 UTC), aiming for alerts around 12:00 and 18:00
+    # GitHub Actions scheduled runs can start several minutes (sometimes tens of minutes) late
     - cron: "50 2,8 * * *"
   workflow_dispatch:
     inputs:
       test_message:
-        description: "Telegram 연결 테스트 메시지만 보내기"
+        description: "Only send a Telegram connection test message"
         type: boolean
         default: false
 
@@ -37,24 +37,25 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Telegram 연결 테스트
+      - name: Telegram connection test
         if: ${{ inputs.test_message }}
         run: python megabox_alert.py --test-message
 
-      - name: 상영시간표 확인
+      - name: Check showtimes
         if: ${{ !inputs.test_message }}
         run: python megabox_alert.py
 
-      - name: snapshot 저장
+      - name: Save snapshot
         if: ${{ !inputs.test_message }}
         run: |
-          # 공개 repo는 60일간 활동이 없으면 schedule이 자동으로 꺼지므로 월 1회 heartbeat 갱신
+          # Public repos have scheduled workflows disabled after 60 days without activity,
+          # so refresh a heartbeat file once a month
           date +%Y-%m > state/heartbeat.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add state/
           if git diff --cached --quiet; then
-            echo "변경 없음"
+            echo "No changes"
           else
             git commit -m "chore: update snapshot"
             git push
