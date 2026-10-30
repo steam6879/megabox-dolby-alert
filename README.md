@@ -1,33 +1,32 @@
-# 메가박스 돌비시네마 예매 오픈 알리미
+# Megabox Dolby Cinema Booking Alert
 
-메가박스 특정 지점·특정 상영관(예: 돌비시네마)에 원하는 영화의 회차가 **새로 열리면 Telegram으로 알려주는** 작은 봇입니다.
-GitHub Actions에서 하루 두 번(점심 12시·저녁 6시 무렵, KST) 실행되므로 서버나 PC를 켜둘 필요가 없습니다.
+A small bot that sends a **Telegram notification when new showtimes open** for a movie you are waiting for, at a specific Megabox (메가박스) branch and screen type such as Dolby Cinema.
+It runs on GitHub Actions twice a day (around 12:00 and 18:00 KST), so you don't need to keep a server or PC running.
 
-기존 알리미들이 코엑스·남양주 돌비 위주라서, **송도(트리플스트리트) 돌비시네마**를 기본 예시로 만들었고 다른 지점도 설정만 바꾸면 됩니다.
+Existing alert bots mostly cover the COEX and Namyangju Dolby Cinemas, so this project uses **Songdo (Triple Street) Dolby Cinema** as the default example. Any other branch works by changing the config.
 
-> 이 프로젝트는 메가박스와 무관한 비공식 도구이며, 누구나 볼 수 있는 상영시간표 정보만 조회합니다.
-> 알림 용도이고 자동 예매 기능은 없습니다. 서버에 부담을 주지 않도록 실행 빈도를 과하게 올리지 마세요.
+> This is an unofficial tool, not affiliated with Megabox. It only reads the publicly available showtime schedule.
+> It sends notifications only and does not book tickets automatically. Please don't raise the run frequency to a level that puts load on Megabox's servers.
 
-## 동작 방식
+## How it works
 
-1. 지점의 예매 가능한 날짜 목록을 가져옴
-2. 날짜별 상영시간표에서 `상영관 종류`와 `영화 제목 키워드`가 일치하는 회차만 추림
-3. `state/snapshot.json`에 없는 (지점, 날짜, 영화) 조합이면 Telegram 알림 전송 후 기록
-4. 조회가 실패하면 실패 사실도 Telegram으로 알림 (조용히 고장나는 것 방지)
+1. Fetch the list of bookable dates for each configured branch
+2. For each date, keep only showtimes whose **screen type** and **movie title keywords** match the config
+3. If a (branch, date, movie) combination is not yet in `state/snapshot.json`, send a Telegram alert and record it
+4. If fetching fails, the failure itself is also sent to Telegram, so the bot never breaks silently
 
-## 내 repo에서 쓰기
+## Use it in your own repo
 
-1. 이 repo를 **Fork** (또는 Use this template)
-2. Telegram에서 `@BotFather` → `/newbot` 으로 봇을 만들고 token 받기
-3. 만든 봇에게 아무 메시지나 보낸 뒤 `https://api.telegram.org/bot<TOKEN>/getUpdates` 에서 `chat.id` 확인
-4. repo **Settings → Secrets and variables → Actions** 에 등록
+1. **Fork** this repo (or click *Use this template*)
+2. In Telegram, open `@BotFather` → `/newbot` to create a bot and copy its token
+3. Send any message (e.g. `/start`) to your new bot, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy the number after `"chat":{"id":`
+4. In your repo, go to **Settings → Secrets and variables → Actions** and add two repository secrets:
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
-5. **Settings → Actions → General → Workflow permissions** 를 *Read and write permissions* 로 변경
-6. **Actions** 탭 → *Megabox 예매 오픈 확인* → *Run workflow*
-   - `test_message` 체크 → Telegram 연결 테스트
-   - 체크 해제 → 실제 조회 1회 실행
-7. `config.json` 을 원하는 영화·지점으로 수정
+5. Go to **Actions** → *Megabox 예매 오픈 확인* → **Run workflow**
+   - Check `test_message` → sends a Telegram connection test
+   - Leave it unchecked → runs one real check
+6. Edit `config.json` for the movies and branches you want
 
 ## config.json
 
@@ -46,55 +45,56 @@ GitHub Actions에서 하루 두 번(점심 12시·저녁 6시 무렵, KST) 실�
 }
 ```
 
-| 필드 | 설명 |
+| Field | Description |
 |---|---|
-| `name` | 알림 제목에 표시되는 이름 (중복 방지 기록의 key로도 쓰임) |
-| `branches` | 메가박스 지점 코드 목록 (아래 표 참고) |
-| `theater_kinds` | 상영관 종류 코드. 비우면 모든 상영관 |
-| `keywords` | 영화 제목(한글/영문)에 포함될 문자열. 대소문자 무시, 비우면 모든 영화 |
-| `enabled` | `false`면 건너뜀 |
+| `name` | Label shown in the alert title; also used as part of the duplicate-prevention key |
+| `branches` | List of Megabox branch codes (`brchNo`, see table below) |
+| `theater_kinds` | Screen type codes. Empty list = all screens |
+| `keywords` | Substrings to look for in the movie title (Korean or English, case-insensitive). Empty list = all movies |
+| `enabled` | Set to `false` to skip this target |
+| `notify_on_error` | Send a Telegram message when a check fails (default `true`) |
 
-### 상영관 종류 코드 (`theabKindCd`)
+### Screen type codes (`theabKindCd`)
 
-| 코드 | 상영관 |
+| Code | Screen |
 |---|---|
 | `DBC` | Dolby Cinema |
-| `RCL` | 르 리클라이너 |
-| `NOR` | 일반관 |
+| `RCL` | LE RECLINER |
+| `NOR` | Standard |
 
-다른 특별관 코드는 메가박스 상영시간표 응답의 `theabKindCd` 값을 보면 확인할 수 있습니다.
+Other premium screen codes can be found in the `theabKindCd` field of Megabox's schedule response.
 
-### 돌비시네마 운영 지점 코드 (`brchNo`)
+### Branches with Dolby Cinema (`brchNo`)
 
-| 지점 | brchNo |
+| Branch | `brchNo` |
 |---|---|
-| 코엑스 | `1351` |
-| 송도(트리플스트리트) | `4062` |
-| 남양주현대아울렛 스페이스원 | `0019` |
-| 안성스타필드 | `0020` |
-| 하남스타필드 | `4651` |
-| 수원AK플라자(수원역) | `0052` |
-| 대전신세계 아트앤사이언스 | `0028` |
-| 대구신세계(동대구) | `7011` |
+| COEX (코엑스) | `1351` |
+| Songdo Triple Street (송도 트리플스트리트) | `4062` |
+| Namyangju Hyundai Outlet Space1 (남양주현대아울렛 스페이스원) | `0019` |
+| Anseong Starfield (안성스타필드) | `0020` |
+| Hanam Starfield (하남스타필드) | `4651` |
+| Suwon AK Plaza (수원AK플라자) | `0052` |
+| Daejeon Shinsegae Art & Science (대전신세계 아트앤사이언스) | `0028` |
+| Daegu Shinsegae (대구신세계) | `7011` |
 
-다른 지점 코드는 메가박스 극장 페이지 주소의 `brchNo=` 값입니다. (예: `megabox.co.kr/theater?brchNo=4062`)
+For any other branch, the code is the `brchNo=` value in the branch page URL (e.g. `megabox.co.kr/theater?brchNo=4062`).
 
-## 로컬 실행
+## Run locally
 
 ```bash
 pip install -r requirements.txt
-python megabox_alert.py --dry-run          # 알림·기록 없이 결과만 출력
+python megabox_alert.py --dry-run          # print results only, no alerts or snapshot writes
 export TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=...
-python megabox_alert.py --test-message     # Telegram 연결 테스트
-python megabox_alert.py                    # 실제 실행
+python megabox_alert.py --test-message     # Telegram connection test
+python megabox_alert.py                    # real run
 ```
 
-## 알아둘 점
+## Notes
 
-- GitHub Actions의 `schedule`은 정시보다 늦게 실행될 수 있습니다. 분 단위 선착순 알림이 필요하면 상시 실행 서버를 쓰세요.
-- 공개 repo는 60일간 활동이 없으면 schedule이 자동으로 꺼집니다. 이를 막기 위해 매월 `state/heartbeat.txt`를 갱신합니다.
-- 메가박스가 해외 IP(GitHub runner)를 차단하면 조회 실패 알림이 옵니다. 그때는 집 PC나 Raspberry Pi에서 cron으로 실행하세요.
-- 메가박스 사이트 구조가 바뀌면 동작하지 않을 수 있습니다. 이슈로 알려주세요.
+- GitHub Actions `schedule` runs can start several minutes (sometimes tens of minutes) late. The cron is set slightly before the target time for this reason. If you need minute-level alerts, run it on an always-on server instead.
+- GitHub disables scheduled workflows in public repos after 60 days without activity. To prevent this, the workflow updates `state/heartbeat.txt` once a month.
+- If Megabox ever blocks GitHub's runner IPs, you will get a failure alert. In that case, run the script with cron on a home PC or a Raspberry Pi.
+- The bot may stop working if Megabox changes its website. Please open an issue if that happens.
 
 ## License
 
