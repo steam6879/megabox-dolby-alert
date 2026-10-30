@@ -2,9 +2,9 @@ name: Megabox 예매 오픈 확인
 
 on:
   schedule:
-    # 매일 09:17, 21:17 (KST) = 00:17, 12:17 (UTC)
+    # 매일 11:50, 17:50 (KST) = 02:50, 08:50 (UTC) 시작 → 12시·18시 전후 알림 목표
     # GitHub Actions의 schedule은 몇 분~수십 분 늦게 실행될 수 있음
-    - cron: "17 0,12 * * *"
+    - cron: "50 2,8 * * *"
   workflow_dispatch:
     inputs:
       test_message:
