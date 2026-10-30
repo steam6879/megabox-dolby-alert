@@ -1,0 +1,19 @@
+{
+  "notify_on_error": true,
+  "targets": [
+    {
+      "name": "라라랜드 송도 돌비",
+      "enabled": true,
+      "branches": ["4062"],
+      "theater_kinds": ["DBC"],
+      "keywords": ["라라랜드", "라라 랜드", "la la land"]
+    },
+    {
+      "name": "송도 돌비 전체",
+      "enabled": false,
+      "branches": ["4062"],
+      "theater_kinds": ["DBC"],
+      "keywords": []
+    }
+  ]
+}

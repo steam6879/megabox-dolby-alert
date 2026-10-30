@@ -1,0 +1,61 @@
+name: Megabox 예매 오픈 확인
+
+on:
+  schedule:
+    # 매일 09:17, 21:17 (KST) = 00:17, 12:17 (UTC)
+    # GitHub Actions의 schedule은 몇 분~수십 분 늦게 실행될 수 있음
+    - cron: "17 0,12 * * *"
+  workflow_dispatch:
+    inputs:
+      test_message:
+        description: "Telegram 연결 테스트 메시지만 보내기"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: megabox-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      TZ: Asia/Seoul
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Telegram 연결 테스트
+        if: ${{ inputs.test_message }}
+        run: python megabox_alert.py --test-message
+
+      - name: 상영시간표 확인
+        if: ${{ !inputs.test_message }}
+        run: python megabox_alert.py
+
+      - name: snapshot 저장
+        if: ${{ !inputs.test_message }}
+        run: |
+          # 공개 repo는 60일간 활동이 없으면 schedule이 자동으로 꺼지므로 월 1회 heartbeat 갱신
+          date +%Y-%m > state/heartbeat.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "chore: update snapshot"
+            git push
+          fi
