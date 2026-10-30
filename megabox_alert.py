@@ -173,6 +173,9 @@ def send_telegram(text: str) -> None:
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            # Actions에서 Secrets가 비어 있으면 조용히 넘어가지 말고 실패로 드러낸다
+            raise RuntimeError("TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID Secrets가 설정되지 않았습니다.")
         print("[telegram] TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID 가 없어 콘솔에만 출력합니다.\n" + text)
         return
     resp = requests.post(
