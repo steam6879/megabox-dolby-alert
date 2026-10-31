@@ -4,13 +4,23 @@
     {
       "name": "라라랜드 송도 돌비",
       "enabled": true,
+      "chain": "megabox",
       "branches": ["4062"],
       "theater_kinds": ["DBC"],
-      "keywords": ["라라랜드", "라라 랜드", "la la land"]
+      "keywords": ["라라랜드", "la la land"]
+    },
+    {
+      "name": "포드 V 페라리 부평역사 광음시네마",
+      "enabled": true,
+      "chain": "lotte",
+      "branches": ["3008"],
+      "theater_kinds": ["901"],
+      "keywords": ["포드 V 페라리", "Ford v Ferrari"]
     },
     {
       "name": "송도 돌비 전체",
       "enabled": false,
+      "chain": "megabox",
       "branches": ["4062"],
       "theater_kinds": ["DBC"],
       "keywords": []

@@ -1,4 +1,4 @@
-name: Check Megabox showtimes
+name: Check cinema showtimes
 
 on:
   schedule:
@@ -39,11 +39,11 @@ jobs:
 
       - name: Telegram connection test
         if: ${{ inputs.test_message }}
-        run: python megabox_alert.py --test-message
+        run: python cinema_alert.py --test-message
 
       - name: Check showtimes
         if: ${{ !inputs.test_message }}
-        run: python megabox_alert.py
+        run: python cinema_alert.py
 
       - name: Save snapshot
         if: ${{ !inputs.test_message }}
